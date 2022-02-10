@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="irsdkSharp" Version="0.4.0" />
+    <PackageReference Include="irsdkSharp.Serialization" Version="0.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\Drivers\" />
+  </ItemGroup>
+
+</Project>
