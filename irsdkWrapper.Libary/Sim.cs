@@ -6,13 +6,6 @@ using irsdkSharp.Serialization.Models.Session;
 
 namespace irsdkWrapper.Libary
 {
-    public enum SimStatus
-    {
-        WaitingForSim = 0,
-        Connected,
-        NotStarted,
-        Started
-    }
     public class Sim
     {
         #region Fields

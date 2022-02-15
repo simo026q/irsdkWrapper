@@ -7,7 +7,7 @@ using irsdkSharp.Models;
 using irsdkSharp.Serialization;
 using irsdkSharp.Serialization.Enums.Fastest;
 
-namespace irsdkWrapper.Libary.Models.Telemetry
+namespace irsdkWrapper.Libary.Models.Telemetry.Drivers
 {
     public class DriverInfo : TelemetryModel
     {
@@ -19,19 +19,9 @@ namespace irsdkWrapper.Libary.Models.Telemetry
 
         public float Clutch => ValueSerializer.GetFloatValue(nameof(Clutch), _data, _headers);
 
-        public EngineWarnings EngineWarnings => (EngineWarnings)ValueSerializer.GetIntValue(nameof(EngineWarnings), _data, _headers);
-
         public int FastRepairAvailable => ValueSerializer.GetIntValue(nameof(FastRepairAvailable), _data, _headers);
 
         public int FastRepairUsed => ValueSerializer.GetIntValue(nameof(FastRepairUsed), _data, _headers);
-
-        public float FuelLevel => ValueSerializer.GetFloatValue(nameof(FuelLevel), _data, _headers);
-
-        public float FuelLevelPct => ValueSerializer.GetFloatValue(nameof(FuelLevelPct), _data, _headers);
-
-        public float FuelPress => ValueSerializer.GetFloatValue(nameof(FuelPress), _data, _headers);
-
-        public float FuelUsePerHour => ValueSerializer.GetFloatValue(nameof(FuelUsePerHour), _data, _headers);
 
         public int Gear => ValueSerializer.GetIntValue(nameof(Gear), _data, _headers);
 
@@ -46,28 +36,6 @@ namespace irsdkWrapper.Libary.Models.Telemetry
         public bool IsOnPitRoad => ValueSerializer.GetBoolValue("OnPitRoad", _data, _headers);
 
         public bool IsReplayPlaying => ValueSerializer.GetBoolValue(nameof(IsReplayPlaying), _data, _headers);
-
-        public float ManifoldPress => ValueSerializer.GetFloatValue(nameof(ManifoldPress), _data, _headers);
-
-        public bool ManualBoost => ValueSerializer.GetBoolValue(nameof(ManualBoost), _data, _headers);
-
-        public bool ManualNoBoost => ValueSerializer.GetBoolValue(nameof(ManualNoBoost), _data, _headers);
-
-        public float OilLevel => ValueSerializer.GetFloatValue(nameof(OilLevel), _data, _headers);
-
-        public float OilPress => ValueSerializer.GetFloatValue(nameof(OilPress), _data, _headers);
-
-        public float OilTemp => ValueSerializer.GetFloatValue(nameof(OilTemp), _data, _headers);
-
-        public bool PushToPass => ValueSerializer.GetBoolValue(nameof(PushToPass), _data, _headers);
-
-        public float RPM => ValueSerializer.GetFloatValue(nameof(RPM), _data, _headers);
-
-        public float ShiftGrindRPM => ValueSerializer.GetFloatValue(nameof(ShiftGrindRPM), _data, _headers);
-
-        public float ShiftIndicatorPct => ValueSerializer.GetFloatValue(nameof(ShiftIndicatorPct), _data, _headers);
-
-        public float ShiftPowerPct => ValueSerializer.GetFloatValue(nameof(ShiftPowerPct), _data, _headers);
 
         public float Speed => ValueSerializer.GetFloatValue(nameof(Speed), _data, _headers);
 
@@ -96,12 +64,6 @@ namespace irsdkWrapper.Libary.Models.Telemetry
         public float Throttle => ValueSerializer.GetFloatValue(nameof(Throttle), _data, _headers);
 
         public float ThrottleRaw => ValueSerializer.GetFloatValue(nameof(ThrottleRaw), _data, _headers);
-
-        public float Voltage => ValueSerializer.GetFloatValue(nameof(Voltage), _data, _headers);
-
-        public float WaterLevel => ValueSerializer.GetFloatValue(nameof(WaterLevel), _data, _headers);
-
-        public float WaterTemp => ValueSerializer.GetFloatValue(nameof(WaterTemp), _data, _headers);
 
         public float VelocityX => ValueSerializer.GetFloatValue(nameof(VelocityX), _data, _headers);
 

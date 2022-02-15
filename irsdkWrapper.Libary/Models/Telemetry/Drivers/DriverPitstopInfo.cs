@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace irsdkWrapper.Libary
+namespace irsdkWrapper.Libary.Models.Telemetry.Drivers
 {
-    public class TelemetryInfo
+    public class DriverPitstopInfo
     {
     }
 }
