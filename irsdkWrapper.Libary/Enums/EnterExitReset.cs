@@ -4,9 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace irsdkWrapper.Libary.Models.Telemetry.Drivers
+namespace irsdkWrapper.Enums
 {
-    public class DriverPitstopInfo
+    public enum EnterExitReset
     {
+        Enter = 0,
+        Exit,
+        Reset
     }
 }

@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace irsdkWrapper.Libary
+namespace irsdkWrapper.Enums
 {
-    public class SessionInfo
+    public enum WeatherType
     {
+        Constant = 0,
+        Dynamic
     }
 }

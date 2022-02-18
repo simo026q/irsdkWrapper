@@ -11,8 +11,4 @@
     <PackageReference Include="irsdkSharp.Serialization" Version="0.4.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Extensions\" />
-  </ItemGroup>
-
 </Project>

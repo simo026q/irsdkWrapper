@@ -4,16 +4,19 @@ using irsdkSharp.Serialization;
 using irsdkSharp.Serialization.Models.Data;
 using irsdkSharp.Serialization.Models.Session;
 
-namespace irsdkWrapper.Libary
+namespace irsdkWrapper
 {
-    public class Sim
+    public class SdkWrapper
     {
         #region Fields
-        private IRacingSDK _sdk;
+        protected IRacingSDK _sdk;
         #endregion
 
         #region Properties
-        private int UpdateDelay => (int)Math.Round(1000 / (double)UpdateFrequency);
+        /// <summary>
+        /// The delay between a connection check when the sim is not connected
+        /// </summary>
+        public const int CheckConnectionDelay = 1000;
 
         /// <summary>
         /// Updates per second (1-60)
@@ -30,9 +33,14 @@ namespace irsdkWrapper.Libary
                 {
                     UpdateFrequency = value;
                 }
-                else UpdateFrequency = 1;
+                else UpdateFrequency = 10;
             }
         }
+
+        /// <summary>
+        /// Update delay in miliseconds based on the update frequency
+        /// </summary>
+        public int UpdateDelay => (int)Math.Round(1000 / (double)UpdateFrequency);
 
         /// <summary>
         /// If the sim has been started
@@ -45,18 +53,21 @@ namespace irsdkWrapper.Libary
         public bool IsConnected => SdkIsConnected && IsStarted;
 
         /// <summary>
+        /// If playing a replay - fetched from telemetry
+        /// </summary>
+        public bool IsReplay => (IsConnected && Telemetry != null) ? Telemetry.Data.IsReplayPlaying : false;
+
+        /// <summary>
         /// SDK connection status
         /// </summary>
         public bool SdkIsConnected => _sdk.IsConnected();
-
-        public bool IsReplay => (IsConnected && Telemetry != null) ? Telemetry.Data.IsReplayPlaying : false;
 
         public IRacingSessionModel? SessionInfo { get; private set; }
         public IRacingDataModel? Telemetry { get; private set; }
         #endregion
 
         #region Events
-        public delegate void TelemetryUpdateEvent(object sender, IRacingSessionModel e);
+        public delegate void TelemetryUpdateEvent(object sender, IRacingDataModel e);
 
         public delegate void SessionInfoUpdateEvent(object sender, IRacingSessionModel e);
 
@@ -70,7 +81,7 @@ namespace irsdkWrapper.Libary
         #endregion
 
         #region Contructor
-        public Sim(bool autoStart = false, int updateFrequency = 10)
+        public SdkWrapper(bool autoStart = false, int updateFrequency = 10)
         {
             _sdk = new IRacingSDK();
 
@@ -121,7 +132,7 @@ namespace irsdkWrapper.Libary
                     Telemetry = telemetry;
                     TelemetryUpdated?.Invoke(this, Telemetry);
 
-                    Telemetry.Data.DisplayUnits
+                    //Telemetry.Data.DisplayUnits
 
                     // Update session info
                     int newUpdate = _sdk.Header.SessionInfoUpdate;
@@ -139,7 +150,7 @@ namespace irsdkWrapper.Libary
                 else
                 {
                     if (lastConnected) Disconnected?.Invoke(this, EventArgs.Empty);
-                    Task.Delay(1000);
+                    Task.Delay(CheckConnectionDelay);
                 }
             }
         }
