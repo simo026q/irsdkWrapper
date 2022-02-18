@@ -51,7 +51,7 @@ namespace irsdkWrapper.Models.Telemetry
 
         public int CamGroupNumber => _data.CamGroupNumber;
 
-        public int CarLeftRight => _data.CarLeftRight;
+        public CarLeftRight CarLeftRight => (CarLeftRight)_data.CarLeftRight;
 
         public float Clutch => _data.Clutch;
 
