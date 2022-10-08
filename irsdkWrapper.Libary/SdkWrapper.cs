@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using irsdkWrapper.Models.Telemetry;
 using irsdkSharp;
 using irsdkSharp.Serialization;
 using irsdkSharp.Serialization.Models.Data;
@@ -8,39 +10,50 @@ namespace irsdkWrapper
 {
     public class SdkWrapper
     {
+        #region Constants
+        public const int DefaultUpdateFrequency = 10;
+        public const int MaxUpdateFrequency = 360;
+        #endregion
+
         #region Fields
+        private int _updateFrequency = DefaultUpdateFrequency;
+        private int _lastSessionUpdate = -1;
+        private bool _connectedOnLastUpdate = false;
+
         protected IRacingSDK _sdk;
+
+        private TelemetryData? _telemetry;
         #endregion
 
         #region Properties
         /// <summary>
         /// The delay between a connection check when the sim is not connected
         /// </summary>
-        public const int CheckConnectionDelay = 1000;
+        public int CheckConnectionDelay { get; set; } = 5000;
 
         /// <summary>
-        /// Updates per second (1-60)
+        /// Updates per second (1-360)
         /// </summary>
         public int UpdateFrequency
         {
             get
             {
-                return UpdateFrequency;
+                return _updateFrequency;
             }
             set
             {
-                if (value > 0 && value <= 60)
+                if (value > 0 && value <= MaxUpdateFrequency)
                 {
-                    UpdateFrequency = value;
+                    _updateFrequency = value;
                 }
-                else UpdateFrequency = 10;
+                else throw new ArgumentOutOfRangeException($"The UpdateFrequency must be between 1 and {MaxUpdateFrequency}");
             }
         }
 
         /// <summary>
         /// Update delay in miliseconds based on the update frequency
         /// </summary>
-        public int UpdateDelay => (int)Math.Round(1000 / (double)UpdateFrequency);
+        public int WaitDelay => (int)Math.Round(1000 / (double)UpdateFrequency);
 
         /// <summary>
         /// If the sim has been started
@@ -55,33 +68,40 @@ namespace irsdkWrapper
         /// <summary>
         /// If playing a replay - fetched from telemetry
         /// </summary>
-        public bool IsReplay => (IsConnected && Telemetry != null) ? Telemetry.Data.IsReplayPlaying : false;
+        public bool IsReplay => (IsConnected && Telemetry != null) ? Telemetry.Session.IsReplayPlaying : false;
 
         /// <summary>
         /// SDK connection status
         /// </summary>
         public bool SdkIsConnected => _sdk.IsConnected();
 
+        /// <summary>
+        /// The session info from the last update
+        /// </summary>
         public IRacingSessionModel? SessionInfo { get; private set; }
-        public IRacingDataModel? Telemetry { get; private set; }
+
+        /// <summary>
+        /// The telemetry from the last update
+        /// </summary>
+        public TelemetryData? Telemetry => _telemetry;
         #endregion
 
         #region Events
-        public delegate void TelemetryUpdateEvent(object sender, IRacingDataModel e);
+        public delegate void TelemetryUpdateEvent(object sender, TelemetryData e);
 
         public delegate void SessionInfoUpdateEvent(object sender, IRacingSessionModel e);
 
-        public event TelemetryUpdateEvent TelemetryUpdated;
+        public event TelemetryUpdateEvent? TelemetryUpdated;
 
-        public event SessionInfoUpdateEvent SessionInfoUpdated;
+        public event SessionInfoUpdateEvent? SessionInfoUpdated;
 
-        public event EventHandler Connected;
+        public event EventHandler? Connected;
 
-        public event EventHandler Disconnected;
+        public event EventHandler? Disconnected;
         #endregion
 
         #region Contructor
-        public SdkWrapper(bool autoStart = false, int updateFrequency = 10)
+        public SdkWrapper(bool autoStart = false, int updateFrequency = DefaultUpdateFrequency)
         {
             _sdk = new IRacingSDK();
 
@@ -92,13 +112,13 @@ namespace irsdkWrapper
         #endregion
 
         #region Methods
-        public void Start(int updateFrequency = 10)
+        public void Start(int updateFrequency = DefaultUpdateFrequency)
         {
             if (!IsStarted)
             {
                 UpdateFrequency = updateFrequency;
                 IsStarted = true;
-                Task.Run(() => UpdateLoop());
+                Loop();
             }
         }
 
@@ -110,47 +130,47 @@ namespace irsdkWrapper
 
         private void Reset()
         {
-            IsStarted = false;
-
             SessionInfo = null;
-            Telemetry = null;
+            _telemetry = null;
         }
 
-        private void UpdateLoop()
+        private async void Loop()
         {
-            int lastSessionUpdate = -1;
-            bool lastConnected = false;
-
             while (IsStarted)
             {
                 if (SdkIsConnected)
                 {
-                    if (!lastConnected) Connected?.Invoke(this, EventArgs.Empty);
+                    if (!_connectedOnLastUpdate) Connected?.Invoke(this, EventArgs.Empty);
 
                     // Update telemetry
-                    IRacingDataModel telemetry = IRacingSDKExtensions.GetSerializedData(_sdk);
-                    Telemetry = telemetry;
-                    TelemetryUpdated?.Invoke(this, Telemetry);
-
-                    //Telemetry.Data.DisplayUnits
+                    IRacingDataModel sdkTelemetry = IRacingSDKExtensions.GetSerializedData(_sdk);
+                    if (_telemetry != null)
+                    {
+                        _telemetry.Update(sdkTelemetry);
+                    }
+                    else
+                    {
+                        _telemetry = new TelemetryData(sdkTelemetry);
+                    }
+                    TelemetryUpdated?.Invoke(this, _telemetry);
 
                     // Update session info
                     int newUpdate = _sdk.Header.SessionInfoUpdate;
-                    if (newUpdate != lastSessionUpdate)
+                    if (newUpdate != _lastSessionUpdate)
                     {
-                        lastSessionUpdate = newUpdate;
+                        _lastSessionUpdate = newUpdate;
                         IRacingSessionModel session = IRacingSDKExtensions.GetSerializedSessionInfo(_sdk);
                         SessionInfo = session;
                         SessionInfoUpdated?.Invoke(this, SessionInfo);
                     }
 
                     // Update delay
-                    Task.Delay(UpdateDelay);
+                    await Task.Delay(WaitDelay);
                 }
                 else
                 {
-                    if (lastConnected) Disconnected?.Invoke(this, EventArgs.Empty);
-                    Task.Delay(CheckConnectionDelay);
+                    if (_connectedOnLastUpdate) Disconnected?.Invoke(this, EventArgs.Empty);
+                    await Task.Delay(CheckConnectionDelay);
                 }
             }
         }
