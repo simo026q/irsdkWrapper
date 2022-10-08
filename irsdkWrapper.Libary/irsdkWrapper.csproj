@@ -4,6 +4,9 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Version>0.2.0</Version>
+    <Authors>Simon Christensen</Authors>
+    <RepositoryUrl>https://github.com/simo026q/irsdkWrapper/</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
