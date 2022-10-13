@@ -7,11 +7,21 @@
     <Version>0.2.0</Version>
     <Authors>Simon Christensen</Authors>
     <RepositoryUrl>https://github.com/simo026q/irsdkWrapper/</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="irsdkSharp" Version="0.4.0" />
-    <PackageReference Include="irsdkSharp.Serialization" Version="0.4.0" />
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="irsdkSharp" Version="0.9.0" />
+    <PackageReference Include="irsdkSharp.Serialization" Version="0.9.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2" />
   </ItemGroup>
 
 </Project>

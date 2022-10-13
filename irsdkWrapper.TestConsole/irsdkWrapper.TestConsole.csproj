@@ -10,6 +10,8 @@
   <ItemGroup>
     <PackageReference Include="irsdkSharp" Version="0.9.0" />
     <PackageReference Include="irsdkSharp.Serialization" Version="0.9.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

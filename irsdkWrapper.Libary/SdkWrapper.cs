@@ -1,38 +1,38 @@
 ﻿using System;
 using System.Threading;
 using irsdkWrapper.Models.Telemetry;
+using irsdkWrapper.Models.Session;
 using irsdkSharp;
 using irsdkSharp.Serialization;
 using irsdkSharp.Serialization.Models.Data;
 using irsdkSharp.Serialization.Models.Session;
+using Microsoft.Extensions.Logging;
 
 namespace irsdkWrapper
 {
-    public class SdkWrapper
+    public class SdkWrapper : IDisposable
     {
         #region Constants
         public const int DefaultUpdateFrequency = 10;
-        public const int MaxUpdateFrequency = 360;
+        public const int MaxUpdateFrequency = 60;
         #endregion
 
         #region Fields
         private int _updateFrequency = DefaultUpdateFrequency;
-        private int _lastSessionUpdate = -1;
-        private bool _connectedOnLastUpdate = false;
 
-        protected IRacingSDK _sdk;
+        private CancellationTokenSource? _dataLoopCancellationSource;
+
+        private readonly ILogger? _logger;
 
         private TelemetryData? _telemetry;
+        private SessionInfo? _sessionInfo;
+
+        protected IRacingSDK _sdk;
         #endregion
 
         #region Properties
         /// <summary>
-        /// The delay between a connection check when the sim is not connected
-        /// </summary>
-        public int CheckConnectionDelay { get; set; } = 5000;
-
-        /// <summary>
-        /// Updates per second (1-360)
+        /// Updates per second (1-60)
         /// </summary>
         public int UpdateFrequency
         {
@@ -56,9 +56,9 @@ namespace irsdkWrapper
         public int WaitDelay => (int)Math.Round(1000 / (double)UpdateFrequency);
 
         /// <summary>
-        /// If the sim has been started
+        /// If the data loop has been started
         /// </summary>
-        public bool IsStarted { get; private set; } = false;
+        public bool IsStarted => _dataLoopCancellationSource != null;
 
         /// <summary>
         /// If the Sim is connected and started
@@ -68,7 +68,7 @@ namespace irsdkWrapper
         /// <summary>
         /// If playing a replay - fetched from telemetry
         /// </summary>
-        public bool IsReplay => (IsConnected && Telemetry != null) ? Telemetry.Session.IsReplayPlaying : false;
+        public bool IsReplay => Telemetry?.Session.IsReplayPlaying ?? false;
 
         /// <summary>
         /// SDK connection status
@@ -78,7 +78,7 @@ namespace irsdkWrapper
         /// <summary>
         /// The session info from the last update
         /// </summary>
-        public IRacingSessionModel? SessionInfo { get; private set; }
+        public SessionInfo? SessionInfo => _sessionInfo;
 
         /// <summary>
         /// The telemetry from the last update
@@ -89,7 +89,7 @@ namespace irsdkWrapper
         #region Events
         public delegate void TelemetryUpdateEvent(object sender, TelemetryData e);
 
-        public delegate void SessionInfoUpdateEvent(object sender, IRacingSessionModel e);
+        public delegate void SessionInfoUpdateEvent(object sender, SessionInfo e);
 
         public event TelemetryUpdateEvent? TelemetryUpdated;
 
@@ -101,78 +101,117 @@ namespace irsdkWrapper
         #endregion
 
         #region Contructor
-        public SdkWrapper(bool autoStart = false, int updateFrequency = DefaultUpdateFrequency)
+        public SdkWrapper()
         {
             _sdk = new IRacingSDK();
+            _sdk.OnConnected += OnSdkConnected;
+            _sdk.OnDisconnected += OnSdkDisconnected;
+        }
 
-            Reset();
+        public SdkWrapper(ILogger logger) : this() 
+        {
+            _logger = logger;
+        }
 
+        public SdkWrapper(bool autoStart, int updateFrequency = DefaultUpdateFrequency) : this()
+        {
             if (autoStart) Start(updateFrequency);
         }
         #endregion
 
         #region Methods
-        public void Start(int updateFrequency = DefaultUpdateFrequency)
+        public void Start(bool restart = false)
         {
+            if (restart) Stop();
+
             if (!IsStarted)
             {
-                UpdateFrequency = updateFrequency;
-                IsStarted = true;
-                Loop();
+                _dataLoopCancellationSource = new CancellationTokenSource();
+
+                _logger?.LogInformation("Started SdkWrapper - waiting for a connection...");
             }
+            else _logger?.LogWarning("SdkWrapper was already started.");
+        }
+
+        public void Start(int updateFrequency)
+        {
+            UpdateFrequency = updateFrequency;
+            Start();
         }
 
         public void Stop()
         {
-            IsStarted = false;
-            Reset();
-        }
+            _dataLoopCancellationSource?.Cancel(true);
+            _dataLoopCancellationSource = null;
 
-        private void Reset()
-        {
-            SessionInfo = null;
+            _sessionInfo = null;
             _telemetry = null;
+
+            _logger?.LogInformation("Stopped SdkWrapper.");
         }
 
-        private async void Loop()
+        public void Dispose()
         {
-            while (IsStarted)
+            Stop();
+        }
+
+        private void Loop(CancellationToken cancellationToken)
+        {
+            int lastSessionUpdate = -1;
+
+            while (!cancellationToken.IsCancellationRequested)
             {
-                if (SdkIsConnected)
+                if (!SdkIsConnected) break;
+
+                // Update telemetry
+                IRacingDataModel sdkTelemetry = _sdk.GetSerializedData();
+
+                if (_telemetry != null) _telemetry.Update(sdkTelemetry);
+                else _telemetry = new TelemetryData(sdkTelemetry);
+                
+                _logger?.LogTrace("Updated telemetry.");
+                TelemetryUpdated?.Invoke(this, _telemetry);
+
+                // Update session info
+                int newUpdate = _sdk.Header.SessionInfoUpdate;
+                if (newUpdate != lastSessionUpdate)
                 {
-                    if (!_connectedOnLastUpdate) Connected?.Invoke(this, EventArgs.Empty);
+                    lastSessionUpdate = newUpdate;
+                    IRacingSessionModel sdkSessionInfo = _sdk.GetSerializedSessionInfo();
+                    _sessionInfo = new SessionInfo(sdkSessionInfo);
 
-                    // Update telemetry
-                    IRacingDataModel sdkTelemetry = IRacingSDKExtensions.GetSerializedData(_sdk);
-                    if (_telemetry != null)
-                    {
-                        _telemetry.Update(sdkTelemetry);
-                    }
-                    else
-                    {
-                        _telemetry = new TelemetryData(sdkTelemetry);
-                    }
-                    TelemetryUpdated?.Invoke(this, _telemetry);
-
-                    // Update session info
-                    int newUpdate = _sdk.Header.SessionInfoUpdate;
-                    if (newUpdate != _lastSessionUpdate)
-                    {
-                        _lastSessionUpdate = newUpdate;
-                        IRacingSessionModel session = IRacingSDKExtensions.GetSerializedSessionInfo(_sdk);
-                        SessionInfo = session;
-                        SessionInfoUpdated?.Invoke(this, SessionInfo);
-                    }
-
-                    // Update delay
-                    await Task.Delay(WaitDelay);
+                    _logger?.LogTrace($"Updated session info. (id: {lastSessionUpdate})");
+                    SessionInfoUpdated?.Invoke(this, _sessionInfo);
                 }
-                else
+
+                // Update delay
+                if (!cancellationToken.IsCancellationRequested)
                 {
-                    if (_connectedOnLastUpdate) Disconnected?.Invoke(this, EventArgs.Empty);
-                    await Task.Delay(CheckConnectionDelay);
+                    Thread.Sleep(WaitDelay);
                 }
             }
+        }
+
+        private void OnSdkConnected()
+        {
+            if (IsStarted)
+            {
+                _logger?.LogInformation("SdkWrapper connected to iRacing.");
+                Connected?.Invoke(this, EventArgs.Empty);
+
+                var cancellationToken = _dataLoopCancellationSource.Token;
+                Task.Run(() => Loop(cancellationToken), cancellationToken);
+            }
+            else _logger?.LogWarning("SdkWrapper connected to iRacing but is not started yet.");
+        }
+
+        private void OnSdkDisconnected()
+        {
+            _logger?.LogInformation("SdkWrapper disconnected from iRacing.");
+
+            Disconnected?.Invoke(this, EventArgs.Empty);
+
+            Stop();
         }
         #endregion
     }

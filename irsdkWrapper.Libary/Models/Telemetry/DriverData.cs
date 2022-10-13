@@ -46,11 +46,11 @@ namespace irsdkWrapper.Models.Telemetry
 
         public bool LapDeltaToSessionBestLap_OK => _data.LapDeltaToSessionBestLap_OK;
 
-        public float LapDeltaToSessionLastlLap => _data.LapDeltaToSessionLastlLap;
+        public float LapDeltaToSessionLastLap => _data.LapDeltaToSessionLastLap;
 
-        public float LapDeltaToSessionLastlLap_DD => _data.LapDeltaToSessionLastlLap_DD;
+        public float LapDeltaToSessionLastLap_DD => _data.LapDeltaToSessionLastLap_DD;
 
-        public bool LapDeltaToSessionLastlLap_OK => _data.LapDeltaToSessionLastlLap_OK;
+        public bool LapDeltaToSessionLastLap_OK => _data.LapDeltaToSessionLastLap_OK;
 
         public float LapDeltaToSessionOptimalLap => _data.LapDeltaToSessionOptimalLap;
 

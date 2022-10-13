@@ -102,25 +102,7 @@ namespace irsdkWrapper.Models.Telemetry
         /// Wind direction in cardinal direction (N, NE, E, SE, etc.) at the start/finish line
         /// </summary>
         /// <value>Cardinal direction as string</value>
-        public string WindDirectionDisplay
-        {
-            get
-            {
-                switch (WindDirectionCardinal)
-                {
-                    case CardinalDirection.North: return "N";
-                    case CardinalDirection.NorthEast: return "NE";
-                    case CardinalDirection.East: return "E";
-                    case CardinalDirection.SouthEast: return "SE";
-                    case CardinalDirection.South: return "S";
-                    case CardinalDirection.SouthWest: return "SW";
-                    case CardinalDirection.West: return "W";
-                    case CardinalDirection.NorthWest: return "NW";
-
-                    default: return String.Empty;
-                }
-            }
-        }
+        public string WindDirectionDisplay => UnitConverter.CardinalDirectionShortName(WindDirectionCardinal);
 
         /// <summary>
         /// Wind speed at the start/finish line
