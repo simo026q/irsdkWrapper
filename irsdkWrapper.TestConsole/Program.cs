@@ -8,12 +8,12 @@ namespace irsdkWrapper.TestConsole
     internal class Program
     {
         // The SdkWrapper instance
-        private static SdkWrapper _wrapper = new SdkWrapper();
+        private static readonly SdkWrapper _wrapper = new SdkWrapper();
 
         // You can easily inject a ILogger like this:
         // private static SdkWrapper _wrapper = new SdkWrapper(_logger);
 
-        static void Main(string[] args)
+        static void Main()
         {
             // Add event handlers
             _wrapper.Connected += OnConnected;

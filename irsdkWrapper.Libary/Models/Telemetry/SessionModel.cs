@@ -5,28 +5,18 @@ using irsdkSharp.Serialization.Models.Data;
 
 namespace irsdkWrapper.Models.Telemetry
 {
-    public class SessionData
+    public class SessionModel
     {
         private IRacingDataModel _telemetry;
 
         private DataModel _data => _telemetry.Data;
 
-        public SessionData(IRacingDataModel telemetry)
+        public SessionModel(IRacingDataModel telemetry)
         {
             _telemetry = telemetry;
         }
 
-        public bool IsInGarage => _data.IsInGarage;
-
-        public bool IsOnTrack => _data.IsOnTrack;
-
-        public bool IsOnTrackCar => _data.IsOnTrackCar;
-
-        public bool IsReplayPlaying => _data.IsReplayPlaying;
-
         public int Lap => _data.Lap;
-
-        public bool IsOnPitRoad => _data.OnPitRoad;
 
         public bool PitsOpen => _data.PitsOpen;
 

@@ -3,58 +3,100 @@ using irsdkSharp.Enums;
 using irsdkSharp.Serialization.Enums.Fastest;
 using irsdkSharp.Serialization.Models.Data;
 
-namespace irsdkWrapper.Models.Telemetry
+namespace irsdkWrapper.Models.Telemetry.Driver
 {
-    public class UncategorizedData
+    public class VehicleModel
     {
-        private IRacingDataModel _telemetry;
+        private readonly DataModel _data;
 
-        private DataModel _data => _telemetry.Data;
-
-        public UncategorizedData(IRacingDataModel telemetry)
+        public VehicleModel(DataModel telemetry)
         {
-            _telemetry = telemetry;
+            _data = telemetry;
         }
 
-        public CarLeftRight CarLeftRight => (CarLeftRight)_data.CarLeftRight;
+        public EngineWarnings EngineWarnings => (EngineWarnings)_data.EngineWarnings;
 
-        public int DCDriversSoFar => _data.DCDriversSoFar;
+        /// <summary>
+        /// Liters of fuel remaining in the tank
+        /// </summary>
+        /// <value>Liters</value>
+        public float FuelLevel => _data.FuelLevel;
 
-        public int DCLapStatus => _data.DCLapStatus;
+        /// <summary>
+        /// Percent fuel remaining in the tank
+        /// </summary>
+        /// <value>Percentage</value>
+        public float FuelLevelPercentage => _data.FuelLevelPct;
 
-        public bool dcStarter => _data.dcStarter;
+        public float FuelPressure => _data.FuelPress;
 
-        public float dpFastRepair => _data.dpFastRepair;
+        public float FuelUsePerHour => _data.FuelUsePerHour;
 
-        public float dpFuelAddKg => _data.dpFuelAddKg;
+        public float ManifoldPressure => _data.ManifoldPress;
 
-        public float dpFuelFill => _data.dpFuelFill;
+        public bool ManualBoost => _data.ManualBoost;
 
-        public float dpLFTireChange => _data.dpLFTireChange;
+        public bool ManualNoBoost => _data.ManualNoBoost;
 
-        public float dpLFTireColdPress => _data.dpLFTireColdPress;
+        public float OilLevel => _data.OilLevel;
 
-        public float dpLRTireChange => _data.dpLRTireChange;
+        public float OilPressure => _data.OilPress;
 
-        public float dpLRTireColdPress => _data.dpLRTireColdPress;
+        public float OilTemperature => _data.OilTemp;
 
-        public float dpRFTireChange => _data.dpRFTireChange;
+        public bool PushToPass => _data.PushToPass;
 
-        public float dpRFTireColdPress => _data.dpRFTireColdPress;
+        public float RPM => _data.RPM;
 
-        public float dpRRTireChange => _data.dpRRTireChange;
+        public float ShiftGrindRPM => _data.ShiftGrindRPM;
 
-        public float dpRRTireColdPress => _data.dpRRTireColdPress;
+        public float ShiftPowerPercentage => _data.ShiftPowerPct;
 
-        public float dpWindshieldTearoff => _data.dpWindshieldTearoff;
+        /// <summary>
+        /// Vehicle GPS speed in m/s (Default iRacing output)
+        /// </summary>
+        /// <value>m/s</value>
+        public float Speed => _data.Speed;
 
-        public bool DriverMarker => _data.DriverMarker;
+        /// <summary>
+        /// Vehicle GPS speed in km/h
+        /// </summary>
+        /// <value>km/h</value>
+        public float SpeedKph => UnitConverter.MsToKph(Speed);
 
-        public EnterExitReset EnterExitReset => (EnterExitReset)_data.EnterExitReset;
+        /// <summary>
+        /// Vehicle GPS speed in mph
+        /// </summary>
+        /// <value>mph</value>
+        public float SpeedMph => UnitConverter.MsToMph(Speed);
 
-        public int FastRepairAvailable => _data.FastRepairAvailable;
+        /// <summary>
+        /// Vehicle GPS in the <see cref="DisplayUnit"/>
+        /// </summary>
+        /// <value>mph / kph</value>
+        public float SpeedLocal
+        {
+            get
+            {
+                switch ((DisplayUnit)_data.DisplayUnits)
+                {
+                    case DisplayUnit.Imperial: return SpeedMph;
+                    case DisplayUnit.Metric: return SpeedKph;
+                    default: return Speed;
+                }
+            }
+        }
 
-        public int FastRepairUsed => _data.FastRepairUsed;
+        public float Voltage => _data.Voltage;
+
+        public float WaterLevel => _data.WaterLevel;
+
+        public float WaterTemperature => _data.WaterTemp;
+
+        /// <summary>
+        /// In car trigger car starter
+        /// </summary>
+        public bool IsStarting => _data.dcStarter;
 
         public float LatAccel => _data.LatAccel;
 
@@ -118,30 +160,6 @@ namespace irsdkWrapper.Models.Telemetry
 
         public float[] PitchRate_ST => _data.PitchRate_ST;
 
-        public float PitOptRepairLeft => _data.PitOptRepairLeft;
-
-        public float PitRepairLeft => _data.PitRepairLeft;
-
-        public bool PitstopActive => _data.PitstopActive;
-
-        public PitServiceFlags PitServiceFlags => (PitServiceFlags)_data.PitSvFlags;
-
-        public float PitServiceFuel => _data.PitSvFuel;
-
-        public float PitServiceLFP => _data.PitSvLFP;
-
-        public float PitServiceLRP => _data.PitSvLRP;
-
-        public float PitServiceRFP => _data.PitSvRFP;
-
-        public float PitServiceRRP => _data.PitSvRRP;
-
-        public int RadioTransmitCarIndex => _data.RadioTransmitCarIdx;
-
-        public int RadioTransmitFrequencyIndex => _data.RadioTransmitFrequencyIdx;
-
-        public int RadioTransmitRadioIndex => _data.RadioTransmitRadioIdx;
-
         public float RFbrakeLinePressure => _data.RFbrakeLinePress;
 
         public float RFcoldPressure => _data.RFcoldPressure;
@@ -195,26 +213,6 @@ namespace irsdkWrapper.Models.Telemetry
         public float RRwearM => _data.RRwearM;
 
         public float RRwearR => _data.RRwearR;
-
-        public float SteeringWheelAngleMax => _data.SteeringWheelAngleMax;
-
-        public float SteeringWheelMaxForceNm => _data.SteeringWheelMaxForceNm;
-
-        public float SteeringWheelPctDamper => _data.SteeringWheelPctDamper;
-
-        public float SteeringWheelPctTorque => _data.SteeringWheelPctTorque;
-
-        public float SteeringWheelPctTorqueSign => _data.SteeringWheelPctTorqueSign;
-
-        public float SteeringWheelPctTorqueSignStops => _data.SteeringWheelPctTorqueSignStops;
-
-        public float SteeringWheelPeakForceNm => _data.SteeringWheelPeakForceNm;
-
-        public float SteeringWheelTorque => _data.SteeringWheelTorque;
-
-        public float[] SteeringWheelTorque_ST => _data.SteeringWheelTorque_ST;
-
-        public bool SteeringWheelUseLinear => _data.SteeringWheelUseLinear;
 
         public float TireLF_RumblePitch => _data.TireLF_RumblePitch;
 

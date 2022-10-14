@@ -2,8 +2,20 @@
 irsdkWrapper is wrapper for the [irsdkSharp](https://github.com/SlevinthHeaven/irsdkSharp) repository with serialization.
 This is an alternative to [iRacingSdkWrapper](https://github.com/NickThissen/iRacingSdkWrapper) with the goal to make it use less resources and have the latest telemetry data.
 
+## Report a bug
+If you find a bug or issue please [create a issue](https://github.com/simo026q/irsdkWrapper/issues/new). I am the only one developing on this package so please be patient :)
+
 # Version
 [![NuGet](https://img.shields.io/nuget/vpre/irsdkWrapper?style=flat-square)](https://www.nuget.org/packages/irsdkWrapper/)
+
+## Todo
+### Version 1.0.0
+- Categorize TelemetryData
+- Deserialize all SessionInfo
+
+### Extensions
+- Lap logger (fuel, time info etc. for a lap)
+- Fuel calculator
 
 # Basic usage
 ```csharp

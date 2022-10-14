@@ -5,18 +5,18 @@ using irsdkSharp.Serialization.Models.Data;
 
 namespace irsdkWrapper.Models.Telemetry
 {
-    public class ReplayData
+    public class ReplayModel
     {
         private IRacingDataModel _telemetry;
 
         private DataModel _data => _telemetry.Data;
 
-        public ReplayData(IRacingDataModel telemetry)
+        public ReplayModel(IRacingDataModel telemetry)
         {
             _telemetry = telemetry;
         }
 
-        public bool IsReplayPlaying => _data.IsReplayPlaying;
+        public bool IsReplay => _data.IsReplayPlaying;
 
         public int CamCameraNumber => _data.CamCameraNumber;
 

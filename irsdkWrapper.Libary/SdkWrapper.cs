@@ -32,6 +32,18 @@ namespace irsdkWrapper
 
         #region Properties
         /// <summary>
+        /// Update delay in miliseconds based on the update frequency
+        /// </summary>
+        protected int WaitDelay => (int)Math.Round(1000 / (double)UpdateFrequency);
+
+        /// <summary>
+        /// The delay between a connection check when the sim is not connected
+        /// </summary>
+        /// <remarks>Deprecated - Connection checking is now done by the IRacingSDK</remarks>
+        [Obsolete("Connection checking is now done by the IRacingSDK")]
+        public int CheckConnectionDelay { get; set; } = 5000;
+
+        /// <summary>
         /// Updates per second (1-60)
         /// </summary>
         public int UpdateFrequency
@@ -42,18 +54,12 @@ namespace irsdkWrapper
             }
             set
             {
-                if (value > 0 && value <= MaxUpdateFrequency)
-                {
-                    _updateFrequency = value;
-                }
-                else throw new ArgumentOutOfRangeException($"The UpdateFrequency must be between 1 and {MaxUpdateFrequency}");
+                if (value <= 0 && value > MaxUpdateFrequency)
+                    throw new ArgumentOutOfRangeException($"The UpdateFrequency must be between 1 and {MaxUpdateFrequency}");
+
+                _updateFrequency = value;
             }
         }
-
-        /// <summary>
-        /// Update delay in miliseconds based on the update frequency
-        /// </summary>
-        public int WaitDelay => (int)Math.Round(1000 / (double)UpdateFrequency);
 
         /// <summary>
         /// If the data loop has been started
@@ -61,14 +67,21 @@ namespace irsdkWrapper
         public bool IsStarted => _dataLoopCancellationSource != null;
 
         /// <summary>
+        /// If the data loop is running
+        /// </summary>
+        public bool IsRunning => !_dataLoopCancellationSource?.IsCancellationRequested ?? false;
+
+        /// <summary>
         /// If the Sim is connected and started
         /// </summary>
-        public bool IsConnected => SdkIsConnected && IsStarted;
+        public bool IsConnected => SdkIsConnected && IsRunning;
 
         /// <summary>
         /// If playing a replay - fetched from telemetry
         /// </summary>
-        public bool IsReplay => Telemetry?.Session.IsReplayPlaying ?? false;
+        /// <remarks>Deprecated - Use Telemetry.Session.IsReplay instead</remarks>
+        [Obsolete("Use Telemetry.Session.IsReplay instead")]
+        public bool IsReplay => false;
 
         /// <summary>
         /// SDK connection status
@@ -100,7 +113,7 @@ namespace irsdkWrapper
         public event EventHandler? Disconnected;
         #endregion
 
-        #region Contructor
+        #region Contructors
         public SdkWrapper()
         {
             _sdk = new IRacingSDK();
@@ -120,9 +133,13 @@ namespace irsdkWrapper
         #endregion
 
         #region Methods
+        /// <summary>
+        /// Start listening for data from iRacing
+        /// </summary>
+        /// <param name="restart">Try to stop the </param>
         public void Start(bool restart = false)
         {
-            if (restart) Stop();
+            if (restart) TryStop();
 
             if (!IsStarted)
             {
@@ -133,16 +150,25 @@ namespace irsdkWrapper
             else _logger?.LogWarning("SdkWrapper was already started.");
         }
 
+        /// <summary>
+        /// Start listening for data from iRacing
+        /// </summary>
+        /// <param name="updateFrequency">Set the <see cref="UpdateFrequency"/> before starting</param>
         public void Start(int updateFrequency)
         {
             UpdateFrequency = updateFrequency;
             Start();
         }
 
+        /// <summary>
+        /// Stop receiving data from iRacing
+        /// </summary>
+        /// <exception cref="ObjectDisposedException"/>
+        /// <exception cref="AggregateException"/>
         public void Stop()
         {
             _dataLoopCancellationSource?.Cancel(true);
-            _dataLoopCancellationSource = null;
+            _dataLoopCancellationSource?.Dispose();
 
             _sessionInfo = null;
             _telemetry = null;
@@ -150,9 +176,28 @@ namespace irsdkWrapper
             _logger?.LogInformation("Stopped SdkWrapper.");
         }
 
+        /// <summary>
+        /// Stop receiving data from iRacing
+        /// </summary>
+        public bool TryStop()
+        {
+            try
+            {
+                Stop();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Something prevented the SdkWrapper from stopping...");
+                return false;
+            }
+        }
+
         public void Dispose()
         {
-            Stop();
+            TryStop();
+
+            GC.SuppressFinalize(this);
         }
 
         private void Loop(CancellationToken cancellationToken)
@@ -199,8 +244,17 @@ namespace irsdkWrapper
                 _logger?.LogInformation("SdkWrapper connected to iRacing.");
                 Connected?.Invoke(this, EventArgs.Empty);
 
-                var cancellationToken = _dataLoopCancellationSource.Token;
-                Task.Run(() => Loop(cancellationToken), cancellationToken);
+                try
+                {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+                    var cancellationToken = _dataLoopCancellationSource.Token;
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                    Task.Run(() => Loop(cancellationToken), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogCritical(ex, "Something prevented the SdkWrapper from running the data receiver loop...");
+                }
             }
             else _logger?.LogWarning("SdkWrapper connected to iRacing but is not started yet.");
         }

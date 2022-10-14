@@ -3,17 +3,15 @@ using irsdkSharp.Enums;
 using irsdkSharp.Serialization.Enums.Fastest;
 using irsdkSharp.Serialization.Models.Data;
 
-namespace irsdkWrapper.Models.Telemetry
+namespace irsdkWrapper.Models.Telemetry.Driver
 {
-    public class InputData
+    public class InputModel
     {
-        private IRacingDataModel _telemetry;
+        private readonly DataModel _data;
 
-        private DataModel _data => _telemetry.Data;
-
-        public InputData(IRacingDataModel telemetry)
+        public InputModel(DataModel telemetry)
         {
-            _telemetry = telemetry;
+            _data = telemetry;
         }
 
         public float Brake => _data.Brake;

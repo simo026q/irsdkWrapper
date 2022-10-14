@@ -5,13 +5,13 @@ using irsdkSharp.Serialization.Models.Data;
 
 namespace irsdkWrapper.Models.Telemetry
 {
-    public class TrackData
+    public class TrackModel
     {
         private IRacingDataModel _telemetry;
 
         private DataModel _data => _telemetry.Data;
 
-        public TrackData(IRacingDataModel telemetry)
+        public TrackModel(IRacingDataModel telemetry)
         {
             _telemetry = telemetry;
         }
