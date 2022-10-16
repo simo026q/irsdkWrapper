@@ -17,7 +17,7 @@ namespace irsdkWrapper.Models.Session
 
         public CameraInfoModel Camera => _session.CameraInfo;
 
-        private WeekendInfo? _track;
-        public WeekendInfo Track => _track ??= new WeekendInfo(_session.WeekendInfo);
+        private WeekendInfo? _weekend;
+        public WeekendInfo Weekend => _weekend ??= new WeekendInfo(_session.WeekendInfo);
     }
 }

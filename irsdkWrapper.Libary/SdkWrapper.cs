@@ -25,7 +25,7 @@ namespace irsdkWrapper
         private readonly ILogger? _logger;
 
         private TelemetryData? _telemetry;
-        private SessionInfo? _sessionInfo;
+        private IRacingSessionModel? _sessionInfo;
 
         protected IRacingSDK _sdk;
         #endregion
@@ -91,7 +91,7 @@ namespace irsdkWrapper
         /// <summary>
         /// The session info from the last update
         /// </summary>
-        public SessionInfo? SessionInfo => _sessionInfo;
+        public IRacingSessionModel? SessionInfo => _sessionInfo;
 
         /// <summary>
         /// The telemetry from the last update
@@ -102,7 +102,7 @@ namespace irsdkWrapper
         #region Events
         public delegate void TelemetryUpdateEvent(object sender, TelemetryData e);
 
-        public delegate void SessionInfoUpdateEvent(object sender, SessionInfo e);
+        public delegate void SessionInfoUpdateEvent(object sender, IRacingSessionModel e);
 
         public event TelemetryUpdateEvent? TelemetryUpdated;
 
@@ -223,7 +223,7 @@ namespace irsdkWrapper
                 {
                     lastSessionUpdate = newUpdate;
                     IRacingSessionModel sdkSessionInfo = _sdk.GetSerializedSessionInfo();
-                    _sessionInfo = new SessionInfo(sdkSessionInfo);
+                    _sessionInfo = sdkSessionInfo;
 
                     _logger?.LogTrace($"Updated session info. (id: {lastSessionUpdate})");
                     SessionInfoUpdated?.Invoke(this, _sessionInfo);

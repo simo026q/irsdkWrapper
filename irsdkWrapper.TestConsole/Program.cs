@@ -2,6 +2,7 @@
 using irsdkWrapper;
 using irsdkWrapper.Models.Session;
 using irsdkWrapper.Models.Telemetry;
+using irsdkSharp.Serialization.Models.Session;
 
 namespace irsdkWrapper.TestConsole
 {
@@ -53,7 +54,7 @@ namespace irsdkWrapper.TestConsole
 
         // Static session info from iRacing
         // Updated on session change or if any session is changed
-        static void OnSessionInfoUpdated(object? sender, SessionInfo e)
+        static void OnSessionInfoUpdated(object? sender, IRacingSessionModel e)
         {
             // Your code
         }
