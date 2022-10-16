@@ -1,4 +1,5 @@
 ﻿using irsdkWrapper.Enums;
+using irsdkWrapper.Models.Session.WeekendInfo;
 using irsdkSharp.Enums;
 using irsdkSharp.Serialization.Enums.Fastest;
 using irsdkSharp.Serialization.Models.Session;
@@ -6,18 +7,18 @@ using irsdkSharp.Serialization.Models.Session.CameraInfo;
 
 namespace irsdkWrapper.Models.Session
 {
-    public class SessionInfo
+    public class SessionData
     {
         private readonly IRacingSessionModel _session;
 
-        public SessionInfo(IRacingSessionModel session)
+        public SessionData(IRacingSessionModel session)
         {
             _session = session;
         }
 
         public CameraInfoModel Camera => _session.CameraInfo;
 
-        private WeekendInfo? _weekend;
-        public WeekendInfo Weekend => _weekend ??= new WeekendInfo(_session.WeekendInfo);
+        private WeekendInfoModel? _weekendInfo;
+        public WeekendInfoModel WeekendInfo => _weekendInfo ??= new WeekendInfoModel(_session.WeekendInfo);
     }
 }

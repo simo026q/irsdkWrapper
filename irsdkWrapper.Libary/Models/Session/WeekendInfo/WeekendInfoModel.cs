@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 using irsdkWrapper.Enums;
 using irsdkSharp.Serialization.Models.Session.WeekendInfo;
 
-namespace irsdkWrapper.Models.Session
+namespace irsdkWrapper.Models.Session.WeekendInfo
 {
-    public class WeekendInfo
+    public class WeekendInfoModel
     {
-        private readonly WeekendInfoModel _weekend;
+        private readonly irsdkSharp.Serialization.Models.Session.WeekendInfo.WeekendInfoModel _weekend;
 
-        public WeekendInfo(WeekendInfoModel weekend)
+        public WeekendInfoModel(irsdkSharp.Serialization.Models.Session.WeekendInfo.WeekendInfoModel weekend)
         {
             _weekend = weekend;
         }
@@ -213,7 +213,8 @@ namespace irsdkWrapper.Models.Session
 
         public string BuildVersion => _weekend.BuildVersion;
 
-        public WeekendOptionsModel WeekendOptions => _weekend.WeekendOptions;
+        private WeekendOptionsModel? _weekendOptions;
+        public WeekendOptionsModel WeekendOptions => _weekendOptions ??= new WeekendOptionsModel(_weekend.WeekendOptions);
 
         public TelemetryOptionsModel TelemetryOptions => _weekend.TelemetryOptions;
     }
